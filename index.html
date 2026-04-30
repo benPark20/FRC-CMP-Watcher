@@ -6,6 +6,7 @@
 <title>FRC Worlds 2026 — Match Scout</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://www.youtube.com/iframe_api"></script>
 <style>
 :root {
   --bg:      #07090c;
@@ -74,7 +75,27 @@ body::before {
 .logo em { color: var(--orange); font-style: normal; }
 
 .header-right {
-  display: flex; align-items: center; gap: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.sidebar-toggle-btn {
+  border: 1px solid rgba(56,180,255,0.25);
+  background: rgba(56,180,255,0.08);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+.sidebar-toggle-btn:hover {
+  background: rgba(56,180,255,0.16);
+  border-color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .live-badge {
@@ -112,12 +133,7 @@ body::before {
   grid-template-rows: auto auto 1fr;
   gap: 0;
   min-height: calc(100vh - 52px);
-}
-
-/* ===================== MAP SECTION ===================== */
-#map-section {
-  grid-column: 1; grid-row: 1;
-  padding: 20px 20px 0 20px;
+  min-width: 0;
 }
 
 .section-label {
@@ -150,8 +166,8 @@ body::before {
 
 .map-layout {
   display: grid;
-  grid-template-columns: repeat(8, minmax(160px, 1fr));
-  grid-auto-rows: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-auto-rows: auto;
   gap: 8px;
 }
 
@@ -390,9 +406,10 @@ body::before {
 }
 .stream-btn.fullwidth { width: 100%; }
 .stream-btn.small {
-  padding: 8px 10px;
-  font-size: 11px;
+  padding: 6px 10px;
+  font-size: 10px;
   letter-spacing: 0.5px;
+  min-width: 70px;
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.12);
   color: var(--text);
@@ -507,13 +524,16 @@ body::before {
 }
 .stream-embed-wrapper {
   position: relative;
-  padding-top: 56.25%;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: calc(100vh - 220px);
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
 }
-.stream-embed-wrapper iframe {
+.stream-embed-wrapper iframe,
+.stream-embed-wrapper > div {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -799,6 +819,78 @@ body::before {
   .header-status { display: none; }
 }
 
+@media (max-width: 768px) {
+  .sidebar-toggle-btn { display: none; }
+  #sidebar {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    box-shadow: none !important;
+  }
+  #sidebar-backdrop {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  #app {
+    grid-template-columns: 1fr;
+  }
+
+  #sidebar {
+    position: fixed;
+    top: 52px;
+    right: 0;
+    width: min(380px, 90vw);
+    height: calc(100vh - 52px);
+    margin: 0;
+    border-left: 1px solid var(--border);
+    background: var(--bg2);
+    box-shadow: -18px 0 40px rgba(0, 0, 0, 0.35);
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    z-index: 250;
+  }
+
+  #app.sidebar-open #sidebar {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #sidebar-backdrop {
+    position: fixed;
+    inset: 52px 0 0 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 240;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  body.sidebar-open #sidebar-backdrop {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@media (min-width: 1181px) {
+  #app.sidebar-hidden {
+    grid-template-columns: 1fr;
+  }
+  #app.sidebar-hidden #sidebar {
+    display: none;
+  }
+  #sidebar-backdrop {
+    display: none;
+  }
+}
+
 /* Utility */
 .hidden { display: none !important; }
 .mt4 { margin-top: 4px; }
@@ -811,6 +903,7 @@ body::before {
 <header id="header">
   <div class="logo">FRC<em>WORLDS</em> <span style="font-weight:300;font-size:16px;color:var(--muted);letter-spacing:1px">2026 HOUSTON</span></div>
   <div class="header-right">
+    <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" onclick="toggleSidebar()">Hide sidebar</button>
     <div class="live-badge"><div class="pulse"></div><span id="status-text">Connecting...</span></div>
     <div class="header-status" id="last-updated"></div>
   </div>
@@ -822,6 +915,8 @@ body::before {
   <div class="mnav-tab" data-tab="stream" onclick="switchTab('stream')">Stream</div>
   <div class="mnav-tab" data-tab="weights" onclick="switchTab('weights')">Weights</div>
 </div>
+
+<div id="sidebar-backdrop" onclick="toggleSidebar()"></div>
 
 <!-- MAIN APP -->
 <div id="app">
@@ -881,6 +976,7 @@ body::before {
           </div>
           <div class="stream-control-row">
             <select id="stream-source-select" onchange="handleStreamSelection()" class="stream-select"></select>
+            <button id="stream-mute-btn" class="stream-btn small" onclick="toggleStreamMute()" type="button">🔊 Unmute</button>
             <button id="stream-next-btn" class="stream-btn small" onclick="advanceStream()" type="button">↻ Next</button>
             <a id="current-stream-link" class="stream-btn" href="#" target="_blank">▶ Open stream</a>
           </div>
@@ -1201,7 +1297,6 @@ function advanceStream() {
   const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % top3.length : 0;
   STATE.currentStreamEventKey = top3[nextIndex].event.key;
   STATE.currentMatchKey = top3[nextIndex].match.key;
-  STATE.streamMode = 'manual';
   saveStateCookies();
   renderStreams(scored);
 }
@@ -1230,10 +1325,29 @@ function updateCurrentStream(scored) {
   if (!scored.length) {
     STATE.currentStreamEventKey = null;
     STATE.currentMatchKey = null;
+    if (STATE.switchTimer) {
+      clearTimeout(STATE.switchTimer);
+      STATE.switchTimer = null;
+    }
     return;
   }
   const activeKeys = new Set(scored.map(f => f.event.key));
   const activeMatchKeys = new Set(scored.map(f => f.match.key));
+
+  // Check if current match has ended
+  const currentItem = scored.find(f => f.match.key === STATE.currentMatchKey);
+  const matchEnded = currentItem && currentItem.match.actual_time;
+
+  if (matchEnded && !STATE.switchTimer) {
+    // Match ended, start 25-second timer before allowing switch
+    STATE.switchTimer = setTimeout(() => {
+      STATE.switchTimer = null;
+      // After timer, allow switch and re-render immediately
+      if (STATE.lastScored.length) {
+        renderStreams(STATE.lastScored);
+      }
+    }, 5000);
+  }
 
   if (STATE.streamMode === 'manual') {
     if (activeKeys.has(STATE.currentStreamEventKey) && activeMatchKeys.has(STATE.currentMatchKey)) {
@@ -1243,10 +1357,14 @@ function updateCurrentStream(scored) {
     STATE.streamMode = 'auto';
   }
   if (STATE.streamMode === 'auto') {
-    if (!STATE.currentMatchKey || !activeMatchKeys.has(STATE.currentMatchKey)) {
-      // No current match or it finished, switch to top
+    if (!STATE.currentMatchKey || (!activeMatchKeys.has(STATE.currentMatchKey) && !STATE.switchTimer)) {
+      // No current match, or it finished and timer expired - switch to top
       STATE.currentStreamEventKey = scored[0].event.key;
       STATE.currentMatchKey = scored[0].match.key;
+      if (STATE.switchTimer) {
+        clearTimeout(STATE.switchTimer);
+        STATE.switchTimer = null;
+      }
     }
     // Else keep current
     return;
@@ -1254,6 +1372,10 @@ function updateCurrentStream(scored) {
   if (!STATE.currentStreamEventKey || !activeKeys.has(STATE.currentStreamEventKey)) {
     STATE.currentStreamEventKey = scored[0].event.key;
     STATE.currentMatchKey = scored[0].match.key;
+    if (STATE.switchTimer) {
+      clearTimeout(STATE.switchTimer);
+      STATE.switchTimer = null;
+    }
   }
 }
 
@@ -1299,43 +1421,80 @@ function renderStreams(scored) {
   link.textContent = `▶ Watch ${item.event.name}`;
   link.classList.remove('disabled');
 
-  // Render top 3 streams in scrollable container
-  const topStreams = scored.slice(0, 3);
-  let currentIndex = 0;
-  if (STATE.currentStreamEventKey) {
-    currentIndex = topStreams.findIndex(fd => fd.event.key === STATE.currentStreamEventKey);
-    if (currentIndex === -1) currentIndex = 0;
-  }
+  const selectedStreamKey = `${item.event.key}|${item.match.key}`;
+  const streamPlayerContainerId = 'current-stream-player';
+  const videoId = embedUrl.split('/embed/')[1]?.split('?')[0];
 
-  const iframes = topStreams.map((fd, i) => {
-    const sUrl = getStreamUrl(fd.event);
-    const eUrl = getEmbedUrl(sUrl);
-    return `<div style="flex:1; scroll-snap-align:start; position:relative;">
-      <iframe src="${eUrl}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:100%;border:none;"></iframe>
-    </div>`;
-  }).join('');
+  if (videoId && window.YT && YT.Player) {
+    const existingContainer = embedContainer.querySelector(`#${streamPlayerContainerId}`);
+    if (!existingContainer) {
+      embedContainer.innerHTML = `<div id="${streamPlayerContainerId}" style="width:100%;height:100%;"></div>`;
+    }
 
-  embedContainer.innerHTML = `
-    <div style="position:absolute;inset:0;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;">
-      <div style="display:flex;width:${topStreams.length * 100}%;height:100%;">
-        ${iframes}
-      </div>
-    </div>
-  `;
-
-  // Scroll to current
-  const scrollContainer = embedContainer.querySelector('div');
-  if (scrollContainer) {
-    scrollContainer.scrollLeft = currentIndex * embedContainer.clientWidth;
+    if (!streamPlayer || lastStreamKey !== selectedStreamKey) {
+      if (streamPlayer && typeof streamPlayer.destroy === 'function') {
+        streamPlayer.destroy();
+      }
+      streamPlayer = new YT.Player(streamPlayerContainerId, {
+        videoId,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          controls: 1,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+        },
+        events: {
+          onReady: (event) => {
+            event.target.playVideo();
+            const muteBtn = document.getElementById('stream-mute-btn');
+            if (muteBtn) muteBtn.textContent = event.target.isMuted() ? 'Unmute' : 'Mute';
+            setTimeout(() => {
+              if (streamPlayer && typeof streamPlayer.unMute === 'function' && streamPlayer.isMuted()) {
+                streamPlayer.unMute();
+                const btn = document.getElementById('stream-mute-btn');
+                if (btn) btn.textContent = 'Mute';
+              }
+            }, 1000);
+          }
+        }
+      });
+      lastStreamKey = selectedStreamKey;
+    }
+    const muteBtn = document.getElementById('stream-mute-btn');
+    if (muteBtn) {
+      muteBtn.style.display = 'inline-flex';
+      if (streamPlayer && typeof streamPlayer.isMuted === 'function') {
+        muteBtn.textContent = streamPlayer.isMuted() ? 'Unmute' : 'Mute';
+      } else {
+        muteBtn.textContent = 'Mute';
+      }
+    }
+  } else {
+    embedContainer.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:100%;border:none;"></iframe>`;
+    const muteBtn = document.getElementById('stream-mute-btn');
+    if (muteBtn) muteBtn.style.display = 'none';
   }
 
   const statsCard = document.getElementById('stream-stats-card');
   if (statsCard) {
     const upcoming = scored.slice(1, 5).map(fd => {
       const nextTime = fd.match.predictedTime ? formatTimeDelta(fd.match.predictedTime) : 'TBD';
-      return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
-        <strong style="font-family:var(--font-display);font-size:13px;color:var(--accent);">${fd.event.name} QM ${fd.match.matchNum}</strong>
-        <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;">${nextTime}</div>
+      const scoreText = (fd.match.redProj !== null && fd.match.blueProj !== null)
+        ? `${Math.round(fd.match.redProj)} - ${Math.round(fd.match.blueProj)}`
+        : 'TBD';
+      const teamChips = [
+        ...fd.match.redTeams.map(n => `<span class="chip chip-r${STATE.subscribedTeams.has(n) ? ' is-sub' : ''}">${n}</span>`),
+        ...fd.match.blueTeams.map(n => `<span class="chip chip-b${STATE.subscribedTeams.has(n) ? ' is-sub' : ''}">${n}</span>`)
+      ].join('');
+      return `<div style="padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">
+          <strong style="font-family:var(--font-display);font-size:12px;color:var(--accent);">${fd.event.name} QM ${fd.match.matchNum}</strong>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--muted);">${scoreText}</span>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-bottom:8px;">${nextTime}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">${teamChips}</div>
       </div>`;
     }).join('');
     const highlight = `<div style="padding:12px;background:rgba(56,180,255,0.08);border:1px solid rgba(56,180,255,0.25);border-radius:10px;">
@@ -1358,8 +1517,12 @@ const STATE = {
   currentStreamEventKey: null,
   currentMatchKey: null,
   streamMode: 'auto',
+  switchTimer: null,
   lastScored: [],
 };
+
+let streamPlayer = null;
+let lastStreamKey = null;
 
 // ===================== API HELPERS =====================
 async function tba(path) {
@@ -1411,8 +1574,8 @@ async function fetchAll() {
           const hasEpa = redEpa.some(v => v !== null) || blueEpa.some(v => v !== null);
 
           const sumValid = arr => arr.filter(v => v !== null).reduce((s,v) => s+v, 0);
-          const redProj = hasEpa ? sumValid(redEpa) : null;
-          const blueProj = hasEpa ? sumValid(blueEpa) : null;
+          const redProjFromEpa = hasEpa ? sumValid(redEpa) : null;
+          const blueProjFromEpa = hasEpa ? sumValid(blueEpa) : null;
 
           // OPR/DPR from TBA
           const teamKey = num => `frc${num}`;
@@ -1422,6 +1585,8 @@ async function fetchAll() {
           const blueOpr = blueTeams.map(opr);
           const redDpr = redTeams.map(dpr);
           const blueDpr = blueTeams.map(dpr);
+          const redProj = redProjFromEpa !== null ? redProjFromEpa : (sumValid(redOpr) || null);
+          const blueProj = blueProjFromEpa !== null ? blueProjFromEpa : (sumValid(blueOpr) || null);
 
           return {
             key: m.key, matchNum: m.match_number,
@@ -1449,6 +1614,34 @@ async function fetchAll() {
   }
 
   document.getElementById('refresh-btn').disabled = false;
+}
+
+function recompute() {
+  const scores = [];
+  const allMatches = [];
+  const weights = getWeights();
+  const fieldMetrics = [];
+
+  STATE.fieldData.forEach(fd => {
+    fd.matches.forEach(match => {
+      const metrics = buildMatchMetrics(match);
+      scores.push({ event: fd.event, match, metrics });
+      allMatches.push(match);
+    });
+  });
+
+  const norms = calculateNorms(scores.map(s => s.metrics));
+  const scored = STATE.fieldData.map(fd => {
+    const bestMatch = fd.matches.map(match => ({ match, score: scoreMatch(match, weights, norms) }))
+      .sort((a,b)=>b.score-a.score)[0];
+    return bestMatch ? { event: fd.event, match: bestMatch.match, score: bestMatch.score, reasons: buildMatchReasons(bestMatch.match, weights, norms) } : null;
+  }).filter(Boolean).sort((a,b)=>b.score-b.score);
+
+  STATE.lastScored = scored;
+  updateCurrentStream(scored);
+  renderStreams(scored);
+  renderFeatured(scored[0]);
+  renderRunners(scored.slice(1,4));
 }
 
 // ===================== SCORING =====================
@@ -1923,6 +2116,34 @@ function switchTab(tab) {
   if (streamSidebar) streamSidebar.classList.toggle('hidden', isWeights);
 }
 
+function applySidebarState() {
+  const app = document.getElementById('app');
+  const button = document.getElementById('sidebar-toggle-btn');
+  if (!app || !button) return;
+  app.classList.toggle('sidebar-open', STATE.sidebarOpen);
+  app.classList.toggle('sidebar-hidden', !STATE.sidebarOpen);
+  document.body.classList.toggle('sidebar-open', STATE.sidebarOpen);
+  button.textContent = STATE.sidebarOpen ? 'Hide sidebar' : 'Show sidebar';
+}
+
+function toggleStreamMute() {
+  const btn = document.getElementById('stream-mute-btn');
+  if (streamPlayer && typeof streamPlayer.isMuted === 'function') {
+    if (streamPlayer.isMuted()) {
+      streamPlayer.unMute();
+      if (btn) btn.textContent = 'Mute';
+    } else {
+      streamPlayer.mute();
+      if (btn) btn.textContent = 'Unmute';
+    }
+  }
+}
+
+function toggleSidebar() {
+  STATE.sidebarOpen = !STATE.sidebarOpen;
+  applySidebarState();
+}
+
 // ===================== UTILS =====================
 function setStatus(s) {
   document.getElementById('status-text').textContent = s;
@@ -1943,6 +2164,7 @@ renderSubChips();
 fetchAll();
 resetAutoCountdown();
 switchSidebarTab('streams');
+applySidebarState();
 </script>
 </body>
 </html>
