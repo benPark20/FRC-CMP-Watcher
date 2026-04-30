@@ -870,12 +870,14 @@ body::before {
     z-index: 240;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: opacity 0.25s ease, visibility 0.25s ease;
   }
 
-  body.sidebar-open #sidebar-backdrop {
+  #app.sidebar-open ~ #sidebar-backdrop {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
   }
 }
 
@@ -890,6 +892,7 @@ body::before {
     display: none;
   }
 }
+
 
 /* Utility */
 .hidden { display: none !important; }
@@ -1331,50 +1334,46 @@ function updateCurrentStream(scored) {
     }
     return;
   }
-  const activeKeys = new Set(scored.map(f => f.event.key));
-  const activeMatchKeys = new Set(scored.map(f => f.match.key));
 
-  // Check if current match has ended
   const currentItem = scored.find(f => f.match.key === STATE.currentMatchKey);
-  const matchEnded = currentItem && currentItem.match.actual_time;
 
-  if (matchEnded && !STATE.switchTimer) {
-    // Match ended, start 25-second timer before allowing switch
-    STATE.switchTimer = setTimeout(() => {
-      STATE.switchTimer = null;
-      // After timer, allow switch and re-render immediately
-      if (STATE.lastScored.length) {
-        renderStreams(STATE.lastScored);
-      }
-    }, 5000);
-  }
-
-  if (STATE.streamMode === 'manual') {
-    if (activeKeys.has(STATE.currentStreamEventKey) && activeMatchKeys.has(STATE.currentMatchKey)) {
+  if (STATE.streamMode === 'auto') {
+    if (!currentItem) {
+      pickTopMatch(scored);
       return;
     }
-    // If current match finished or not available, switch to auto
-    STATE.streamMode = 'auto';
-  }
-  if (STATE.streamMode === 'auto') {
-    if (!STATE.currentMatchKey || (!activeMatchKeys.has(STATE.currentMatchKey) && !STATE.switchTimer)) {
-      // No current match, or it finished and timer expired - switch to top
-      STATE.currentStreamEventKey = scored[0].event.key;
-      STATE.currentMatchKey = scored[0].match.key;
-      if (STATE.switchTimer) {
-        clearTimeout(STATE.switchTimer);
-        STATE.switchTimer = null;
-      }
+
+    const now = Date.now() / 1000;
+    const start = currentItem.match.predictedTime;
+
+    if (!start) {
+      pickTopMatch(scored);
+      return;
     }
-    // Else keep current
-    return;
+
+    const elapsed = now - start;
+
+    // Force switch after 5 minutes
+    if (elapsed > 300) {
+      pickTopMatch(scored);
+      return;
+    }
+
+    // Soft switch shortly after match ends
+    if (elapsed > 150 && !STATE.switchTimer) {
+      STATE.switchTimer = setTimeout(() => {
+        STATE.switchTimer = null;
+        pickTopMatch(STATE.lastScored);
+      }, 5000);
+    }
   }
-  if (!STATE.currentStreamEventKey || !activeKeys.has(STATE.currentStreamEventKey)) {
-    STATE.currentStreamEventKey = scored[0].event.key;
-    STATE.currentMatchKey = scored[0].match.key;
-    if (STATE.switchTimer) {
-      clearTimeout(STATE.switchTimer);
-      STATE.switchTimer = null;
+
+  // Manual mode fallback if stream disappears
+  if (STATE.streamMode === 'manual') {
+    const stillExists = scored.some(f => f.match.key === STATE.currentMatchKey);
+    if (!stillExists) {
+      STATE.streamMode = 'auto';
+      pickTopMatch(scored);
     }
   }
 }
@@ -1384,7 +1383,12 @@ function getCurrentStreamItem(scored) {
   const selected = scored.find(f => f.event.key === STATE.currentStreamEventKey);
   return selected || scored[0];
 }
+function pickTopMatch(scored) {
+  if (!scored.length) return;
 
+  STATE.currentStreamEventKey = scored[0].event.key;
+  STATE.currentMatchKey = scored[0].match.key;
+}
 function renderStreams(scored) {
   const label = document.getElementById('current-stream-label');
   const info = document.getElementById('current-stream-info');
