@@ -769,6 +769,10 @@ body::before {
     position: static;
   }
 
+  #sidebar.mob-active .sidebar-tab-row {
+    display: none;
+  }
+
   #featured-panel {
     margin-bottom: 18px;
   }
@@ -1848,8 +1852,14 @@ function switchTab(tab) {
   const isStream = tab === 'stream';
   const isWeights = tab === 'weights';
 
-  if (mapSection) mapSection.classList.toggle('mob-active', isLive);
-  if (matchSection) matchSection.classList.toggle('mob-active', isLive);
+  if (mapSection) {
+    mapSection.classList.toggle('mob-active', isLive);
+    mapSection.classList.toggle('hidden', !isLive);
+  }
+  if (matchSection) {
+    matchSection.classList.toggle('mob-active', isLive);
+    matchSection.classList.toggle('hidden', !isLive);
+  }
 
   if (streamSection) {
     streamSection.classList.toggle('mob-active', isStream);
@@ -1857,6 +1867,20 @@ function switchTab(tab) {
   }
 
   if (sidebar) sidebar.classList.toggle('mob-active', isWeights);
+
+  if (isWeights) {
+    const dashboardTab = document.getElementById('tab-dashboard');
+    const streamTab = document.getElementById('tab-streams');
+    const dashboardPanel = document.getElementById('dashboard-panel');
+    if (dashboardTab && streamTab) {
+      dashboardTab.classList.add('active');
+      streamTab.classList.remove('active');
+    }
+    if (dashboardPanel) {
+      dashboardPanel.style.display = 'block';
+    }
+  }
+
   if (streamSidebar) streamSidebar.classList.toggle('hidden', isWeights);
 }
 
