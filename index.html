@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRC Worlds 2026 — Match Scout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #07090c;
+  --bg2:     #0c1018;
+  --bg3:     #111820;
+  --bg4:     #161f2a;
+  --border:  rgba(56,180,255,0.18);
+  --border2: rgba(56,180,255,0.35);
+  --accent:  #38b4ff;
+  --accent-dim: rgba(56,180,255,0.12);
+  --orange:  #ff7c38;
+  --green:   #3dffaa;
+  --gold:    #ffd23f;
+  --red-a:   #ff4f4f;
+  --blue-a:  #4f8fff;
+  --red-dim: rgba(255,79,79,0.15);
+  --blue-dim:rgba(79,143,255,0.15);
+  --text:    #d8e8f5;
+  --muted:   #4a6a80;
+  --muted2:  #2a4050;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body:    'Barlow', sans-serif;
+  --font-mono:    'Share Tech Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* GRID NOISE TEXTURE */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(56,180,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,180,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ===================== HEADER ===================== */
+#header {
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(7,9,12,0.96);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; height: 52px;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 22px; letter-spacing: 3px;
+  color: var(--accent); text-shadow: 0 0 24px rgba(56,180,255,0.5);
+}
+.logo em { color: var(--orange); font-style: normal; }
+
+.header-right {
+  display: flex; align-items: center; gap: 16px;
+}
+
+.live-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--green);
+  background: rgba(61,255,170,0.08); border: 1px solid rgba(61,255,170,0.25);
+  border-radius: 3px; padding: 3px 8px;
+}
+.pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1.4s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.header-status { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+
+/* NAV TABS (mobile) */
+#mobile-nav {
+  display: none;
+  position: sticky; top: 52px; z-index: 190;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 0 12px;
+}
+.mnav-tab {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 10px 14px; font-family: var(--font-display);
+  font-weight: 600; font-size: 14px; letter-spacing: 1px;
+  color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.mnav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ===================== LAYOUT ===================== */
+#app {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  grid-template-rows: auto auto 1fr;
+  gap: 0;
+  min-height: calc(100vh - 52px);
+}
+
+/* ===================== MAP SECTION ===================== */
+#map-section {
+  grid-column: 1; grid-row: 1;
+  padding: 20px 20px 0 20px;
+}
+
+.section-label {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 11px; letter-spacing: 3px; color: var(--muted);
+  text-transform: uppercase; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* CONVENTION CENTER MAP */
+#convention-map {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+#convention-map::before {
+  content: 'GEORGE R. BROWN CONVENTION CENTER';
+  position: absolute; bottom: 10px; right: 14px;
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--muted2); letter-spacing: 2px;
+}
+
+.map-layout {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(160px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 8px;
+}
+
+/* Row labels */
+.map-row-label {
+  font-family: var(--font-mono); font-size: 9px; color: var(--muted);
+  letter-spacing: 2px; text-align: center; margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.map-row {
+  display: contents;
+}
+
+/* FIELD CARDS (in map) */
+.field-tile {
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 10px 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 5 / 6;
+  min-height: 130px;
+  max-height: 180px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.field-tile:hover {
+  border-color: var(--border2);
+  background: var(--bg4);
+  transform: translateY(-1px);
+}
+.field-tile.is-top {
+  border-color: var(--accent);
+  background: rgba(56,180,255,0.07);
+  box-shadow: 0 0 24px rgba(56,180,255,0.18), inset 0 0 20px rgba(56,180,255,0.04);
+}
+.field-tile.is-runner {
+  border-color: var(--orange);
+  background: rgba(255,124,56,0.06);
+}
+.field-tile.no-matches {
+  opacity: 0.5; cursor: default;
+}
+
+/* Corner glow for top pick */
+.field-tile.is-top::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 60%; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.field-badge {
+  position: absolute; top: 7px; right: 7px;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 10px; letter-spacing: 1.5px;
+  padding: 2px 6px; border-radius: 3px;
+}
+.badge-top { background: var(--accent); color: var(--bg); }
+.badge-runner { background: var(--orange); color: #fff; }
+
+.field-tile-name {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 17px; line-height: 1;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.field-tile.is-top .field-tile-name { color: var(--accent); }
+
+.field-tile-match {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--muted); margin-bottom: 2px;
+}
+
+.tile-alliance {
+  display: flex; gap: 3px; flex-wrap: wrap;
+}
+
+.chip {
+  font-family: var(--font-mono); font-size: 10px;
+  padding: 1px 5px; border-radius: 3px; font-weight: 600;
+  white-space: nowrap;
+}
+.chip-r { background: var(--red-dim); color: #ff9090; border: 1px solid rgba(255,79,79,0.25); }
+.chip-b { background: var(--blue-dim); color: #90b8ff; border: 1px solid rgba(79,143,255,0.25); }
+.chip.is-sub { box-shadow: 0 0 0 1.5px var(--gold); }
+.chip.is-fave { box-shadow: 0 0 0 1.5px var(--green); }
+
+.tile-proj {
+  margin-top: auto;
+  font-family: var(--font-mono); font-size: 11px;
+  display: flex; align-items: center; gap: 5px;
+}
+.proj-r { color: #ff9090; font-weight: 600; }
+.proj-b { color: #90b8ff; font-weight: 600; }
+.proj-vs { color: var(--muted); }
+
+.excitement-track {
+  height: 2px; background: var(--bg2); border-radius: 2px; overflow: hidden; margin-top: 4px;
+}
+.excitement-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--orange));
+  transition: width 0.5s ease;
+}
+
+/* Map legend */
+.map-legend {
+  display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap;
+}
+.legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--muted);
+  font-family: var(--font-mono);
+}
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+/* ===================== MATCH SECTION (left col, below map) ===================== */
+#match-section {
+  grid-column: 1; grid-row: 2 / 4;
+  padding: 16px 20px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+/* ===================== FEATURED MATCH ===================== */
+#featured-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.panel-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(56,180,255,0.04);
+}
+.panel-hd-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 12px; letter-spacing: 2.5px; color: var(--accent);
+  text-transform: uppercase;
+}
+.panel-hd-meta {
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+}
+
+.featured-body { padding: 16px; }
+
+.feat-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px;
+}
+.feat-division {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 32px; line-height: 1; color: var(--accent);
+  text-shadow: 0 0 30px rgba(56,180,255,0.3);
+}
+.feat-match {
+  font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-top: 4px;
+}
+.feat-score-wrap { text-align: right; }
+.feat-score-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+.feat-scores {
+  display: flex; align-items: baseline; gap: 6px; justify-content: flex-end;
+  margin-top: 2px;
+}
+.feat-score-r { font-family: var(--font-display); font-weight: 800; font-size: 28px; color: #ff9090; }
+.feat-score-b { font-family: var(--font-display); font-weight: 800; font-size: 28px; color: #90b8ff; }
+.feat-score-sep { font-family: var(--font-mono); font-size: 18px; color: var(--muted); }
+
+.alliance-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 14px;
+}
+
+.alliance-card {
+  border-radius: 6px; padding: 10px 12px;
+}
+.alliance-card.red { background: var(--red-dim); border: 1px solid rgba(255,79,79,0.3); }
+.alliance-card.blue { background: var(--blue-dim); border: 1px solid rgba(79,143,255,0.3); }
+
+.alliance-label {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.alliance-label.red { color: var(--red-a); }
+.alliance-label.blue { color: var(--blue-a); }
+
+.alliance-team-row {
+  display: flex; align-items: center; gap: 7px;
+  padding: 3px 0;
+  font-family: var(--font-display); font-weight: 600; font-size: 16px;
+}
+
+.team-badge {
+  font-size: 9px; font-family: var(--font-mono);
+  padding: 1px 4px; border-radius: 2px;
+  font-weight: 600; letter-spacing: 0.5px;
+}
+.tbadge-sub { background: var(--gold); color: var(--bg); }
+.tbadge-fave { background: var(--green); color: var(--bg); }
+
+/* Why watch */
+.why-section { margin-bottom: 14px; }
+.why-title {
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;
+}
+.why-items { display: flex; flex-direction: column; gap: 4px; }
+.why-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: var(--text); opacity: 0.85;
+}
+.why-bullet {
+  width: 5px; height: 5px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+
+/* Stream button */
+.stream-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-width: 90px; padding: 10px 14px;
+  background: rgba(56,180,255,0.1);
+  border: 1px solid rgba(56,180,255,0.45);
+  border-radius: 6px;
+  color: var(--accent);
+  text-decoration: none;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 13px; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.18s;
+}
+.stream-btn.fullwidth { width: 100%; }
+.stream-btn.small {
+  padding: 8px 10px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: var(--text);
+}
+.stream-btn:hover {
+  background: rgba(56,180,255,0.2);
+  box-shadow: 0 0 20px rgba(56,180,255,0.15);
+}
+.stream-control-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stream-control-row .stream-select { flex: 1; min-width: 180px; }
+.stream-control-row .stream-btn { width: auto; }
+
+/* ===================== RUNNER-UPS ===================== */
+#runner-up-panel {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+}
+
+.runner-item {
+  padding: 11px 14px; border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.15s;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.runner-item:last-child { border-bottom: none; }
+.runner-item:hover { background: rgba(255,124,56,0.06); }
+
+.runner-hd {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.runner-name {
+  font-family: var(--font-display); font-weight: 700; font-size: 16px;
+  color: var(--orange);
+}
+.runner-match { font-family: var(--font-mono); font-size: 10px; color: var(--muted); }
+.runner-proj { font-family: var(--font-mono); font-size: 11px; }
+.runner-proj span:first-child { color: #ff9090; }
+.runner-proj span:last-child { color: #90b8ff; }
+
+.runner-teams { display: flex; gap: 3px; flex-wrap: wrap; }
+
+.runner-reason { font-size: 11px; color: var(--muted); }
+
+/* ===================== SIDEBAR ===================== */
+#sidebar {
+  grid-column: 2; grid-row: 1 / 4;
+  border-left: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(100vh - 52px);
+  position: sticky; top: 52px;
+}
+#stream-section {
+  grid-column: 1;
+  padding: 16px 20px 20px;
+}
+#stream-section.hidden {
+  display: none;
+}
+.stream-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.stream-player {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.stream-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.stream-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--accent);
+  line-height: 1.2;
+}
+.stream-subtitle {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.stream-control-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stream-select {
+  flex: 1;
+  min-width: 160px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.stream-embed-wrapper {
+  position: relative;
+  padding-top: 56.25%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.stream-embed-wrapper iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#stream-sidebar-panel.hidden {
+  display: none;
+}
+.sidebar-tab-row {
+  display: flex; gap: 8px;
+  padding-bottom: 0;
+}
+.sidebar-tab {
+  background: var(--bg3);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+}
+.sidebar-tab.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(56,180,255,0.08);
+}
+.sidebar-tab:hover {
+  color: var(--accent);
+}
+.sidebar-tab.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sidebar-section {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+}
+.sidebar-section:last-child { border-bottom: none; }
+
+.sidebar-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 11px; letter-spacing: 2.5px; color: var(--accent);
+  text-transform: uppercase; margin-bottom: 10px;
+}
+
+/* Add team input */
+.add-team-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.team-input {
+  flex: 1; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); padding: 7px 10px;
+  font-family: var(--font-mono); font-size: 13px;
+}
+.team-input:focus { outline: none; border-color: var(--accent); }
+.add-btn {
+  background: rgba(56,180,255,0.12);
+  border: 1px solid var(--accent); border-radius: 4px;
+  color: var(--accent); padding: 7px 12px; cursor: pointer;
+  font-family: var(--font-display); font-weight: 700; font-size: 14px;
+  transition: background 0.15s;
+}
+.add-btn:hover { background: rgba(56,180,255,0.25); }
+
+.sub-chips { display: flex; flex-wrap: wrap; gap: 4px; min-height: 10px; }
+.sub-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(255,210,63,0.1);
+  border: 1px solid rgba(255,210,63,0.35);
+  border-radius: 3px; padding: 3px 8px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--gold);
+}
+.sub-chip-x {
+  cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1;
+}
+.sub-chip-x:hover { color: var(--red-a); }
+.no-subs { font-size: 11px; color: var(--muted2); font-family: var(--font-mono); }
+
+/* Weight sliders */
+.weight-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.weight-row:last-child { border-bottom: none; }
+.weight-name { flex: 1; font-size: 12px; color: var(--muted); }
+.weight-slider {
+  width: 72px;
+  accent-color: var(--accent);
+}
+.weight-num {
+  font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+  width: 20px; text-align: right;
+}
+
+/* Refresh */
+.refresh-btn {
+  width: 100%; padding: 9px;
+  background: rgba(61,255,170,0.07);
+  border: 1px solid rgba(61,255,170,0.3);
+  border-radius: 5px; color: var(--green); cursor: pointer;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 14px; letter-spacing: 1px;
+  transition: background 0.15s; margin-top: 8px;
+}
+.refresh-btn:hover { background: rgba(61,255,170,0.15); }
+.refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Auto refresh */
+.auto-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 10px;
+}
+.auto-label { font-size: 11px; color: var(--muted); }
+.toggle-wrap { display: flex; align-items: center; gap: 6px; }
+.toggle {
+  width: 34px; height: 18px; border-radius: 9px;
+  background: var(--bg3); border: 1px solid var(--border);
+  cursor: pointer; position: relative; transition: background 0.2s;
+}
+.toggle.on { background: rgba(61,255,170,0.3); border-color: var(--green); }
+.toggle-knob {
+  position: absolute; top: 2px; left: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--muted); transition: all 0.2s;
+}
+.toggle.on .toggle-knob { left: 18px; background: var(--green); }
+.auto-timer { font-family: var(--font-mono); font-size: 11px; color: var(--green); }
+
+/* Field detail modal (click on map field) */
+#field-modal {
+  display: none;
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+#field-modal.open { display: flex; }
+
+.modal-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 24px; max-width: 480px; width: 100%;
+  position: relative;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from { opacity:0; transform: scale(0.95); } to { opacity:1; transform: scale(1); } }
+
+.modal-close {
+  position: absolute; top: 12px; right: 16px;
+  font-size: 22px; color: var(--muted); cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+
+.modal-title {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 28px; color: var(--accent); margin-bottom: 4px;
+}
+.modal-subtitle { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+
+.modal-proj-row {
+  display: flex; gap: 20px; margin-bottom: 14px;
+}
+.modal-proj-card {
+  flex: 1; background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px; text-align: center;
+}
+.modal-proj-label { font-size: 10px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 4px; }
+.modal-proj-val {
+  font-family: var(--font-display); font-weight: 800; font-size: 28px;
+}
+
+.modal-stream-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 12px; margin-top: 14px;
+  background: rgba(56,180,255,0.1); border: 1px solid var(--accent);
+  border-radius: 6px; color: var(--accent); text-decoration: none;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase;
+}
+.modal-stream-btn:hover { background: rgba(56,180,255,0.2); }
+
+/* Loading & error states */
+.loading-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px; gap: 12px; text-align: center;
+}
+.spinner {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.error-state {
+  padding: 20px; color: #ff9090;
+  font-family: var(--font-mono); font-size: 12px; text-align: center;
+}
+
+/* ===================== MOBILE STYLES ===================== */
+@media (max-width: 768px) {
+  #mobile-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; }
+
+  .mnav-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    border-radius: 6px 6px 0 0;
+  }
+
+  #app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  #map-section,
+  #match-section,
+  #stream-section,
+  #sidebar {
+    display: none;
+    width: 100%;
+    padding: 12px;
+  }
+
+  #map-section.mob-active,
+  #match-section.mob-active {
+    display: block;
+  }
+
+  #match-section {
+    order: -1;
+  }
+
+  #stream-section.mob-active,
+  #sidebar.mob-active {
+    display: block;
+  }
+
+  #sidebar {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    position: static;
+  }
+
+  #featured-panel {
+    margin-bottom: 18px;
+  }
+  #featured-body {
+    min-height: 220px;
+  }
+
+  .map-layout { grid-template-columns: 1fr 1fr; }
+  .field-tile { min-height: 110px; }
+  .feat-division { font-size: 24px; }
+  .feat-score-r, .feat-score-b { font-size: 22px; }
+
+  /* Mobile scrollable map */
+  #convention-map {
+    overflow-x: auto;
+  }
+  .map-layout {
+    min-width: 480px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo { font-size: 18px; }
+  .header-status { display: none; }
+}
+
+/* Utility */
+.hidden { display: none !important; }
+.mt4 { margin-top: 4px; }
+.mt8 { margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <div class="logo">FRC<em>WORLDS</em> <span style="font-weight:300;font-size:16px;color:var(--muted);letter-spacing:1px">2026 HOUSTON</span></div>
+  <div class="header-right">
+    <div class="live-badge"><div class="pulse"></div><span id="status-text">Connecting...</span></div>
+    <div class="header-status" id="last-updated"></div>
+  </div>
+</header>
+
+<!-- MOBILE NAV -->
+<div id="mobile-nav">
+  <div class="mnav-tab active" data-tab="live" onclick="switchTab('live')">Live</div>
+  <div class="mnav-tab" data-tab="stream" onclick="switchTab('stream')">Stream</div>
+  <div class="mnav-tab" data-tab="weights" onclick="switchTab('weights')">Weights</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+
+  <!-- MAP SECTION (desktop: top-left) -->
+  <section id="map-section" class="mob-active">
+    <div class="section-label">Field Map — 8 Divisions</div>
+    <div id="convention-map">
+      <div id="map-grid" class="map-layout">
+        <!-- Rendered by JS -->
+        <div class="loading-state" style="grid-column:1/-1">
+          <div class="spinner"></div>
+          <div class="loading-text">Loading field data...</div>
+        </div>
+      </div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Top Pick</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Runner-Up</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>Your Favorites</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MATCH + RUNNERS (desktop: below map, left col) -->
+  <section id="match-section" class="mob-active">
+
+    <div id="featured-panel">
+      <div class="panel-hd">
+        <div class="panel-hd-title">Top Match to Watch</div>
+        <div class="panel-hd-meta" id="feat-score-meta"></div>
+      </div>
+      <div id="featured-body">
+        <div class="loading-state"><div class="spinner"></div><div class="loading-text">Calculating...</div></div>
+      </div>
+    </div>
+
+    <div id="runner-up-panel">
+      <div class="panel-hd">
+        <div class="panel-hd-title">Also Worth Watching</div>
+        <div class="panel-hd-meta">Happening simultaneously</div>
+      </div>
+      <div id="runner-up-body">
+        <div class="loading-state"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+  </section>
+
+  <section id="stream-section" class="hidden">
+    <div class="section-label">Live Stream</div>
+    <div class="stream-view">
+      <div class="stream-player">
+        <div class="stream-meta">
+          <div>
+            <div id="current-stream-label" class="stream-title">Finding the most exciting match...</div>
+            <div id="current-stream-info" class="stream-subtitle">Loading current stream.</div>
+          </div>
+          <div class="stream-control-row">
+            <select id="stream-source-select" onchange="handleStreamSelection()" class="stream-select"></select>
+            <button id="stream-next-btn" class="stream-btn small" onclick="advanceStream()" type="button">↻ Next</button>
+            <a id="current-stream-link" class="stream-btn" href="#" target="_blank">▶ Open stream</a>
+          </div>
+        </div>
+        <div class="stream-embed-wrapper" id="current-stream-embed-container">
+          <div class="embed-placeholder">Starting stream...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIDEBAR (desktop: right col) -->
+  <aside id="sidebar">
+
+    <div class="sidebar-section sidebar-tab-row">
+      <button class="sidebar-tab active" id="tab-streams" onclick="switchSidebarTab('streams')">Streams</button>
+      <button class="sidebar-tab" id="tab-dashboard" onclick="switchSidebarTab('dashboard')">Dashboard</button>
+    </div>
+
+    <div id="stream-sidebar-panel" class="sidebar-section hidden">
+      <div class="sidebar-title">Stream Stats</div>
+      <div id="stream-stats-card" style="display:flex;flex-direction:column;gap:12px;"></div>
+    </div>
+
+    <div id="dashboard-panel">
+      <div class="sidebar-section">
+        <div class="sidebar-title">My Teams</div>
+        <div class="add-team-row">
+          <input class="team-input" id="team-input" type="number" min="1" max="99999" placeholder="Team number" />
+          <button class="add-btn" onclick="addTeam()">+</button>
+        </div>
+        <div class="sub-chips" id="sub-chips">
+          <div class="no-subs">None added yet</div>
+        </div>
+      </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Excitement Weights</div>
+      <div class="weight-row">
+        <div class="weight-name">Subscribed team bias</div>
+        <input class="weight-slider" type="range" min="1" max="10" value="8" step="1" id="w-sub" oninput="syncWeight('w-sub','wv-sub')">
+        <div class="weight-num" id="wv-sub">8</div>
+      </div>
+      <div class="weight-row">
+        <div class="weight-name">Combined projected score</div>
+        <input class="weight-slider" type="range" min="1" max="10" value="6" step="1" id="w-combined" oninput="syncWeight('w-combined','wv-combined')">
+        <div class="weight-num" id="wv-combined">6</div>
+      </div>
+      <div class="weight-row">
+        <div class="weight-name">Top alliance score</div>
+        <input class="weight-slider" type="range" min="1" max="10" value="5" step="1" id="w-top" oninput="syncWeight('w-top','wv-top')">
+        <div class="weight-num" id="wv-top">5</div>
+      </div>
+      <div class="weight-row">
+        <div class="weight-name">Competitive closeness</div>
+        <input class="weight-slider" type="range" min="1" max="10" value="6" step="1" id="w-close" oninput="syncWeight('w-close','wv-close')">
+        <div class="weight-num" id="wv-close">6</div>
+      </div>
+      <div class="weight-row">
+        <div class="weight-name">High EPA (star power)</div>
+        <input class="weight-slider" type="range" min="1" max="10" value="5" step="1" id="w-epa" oninput="syncWeight('w-epa','wv-epa')">
+        <div class="weight-num" id="wv-epa">5</div>
+      </div>
+      <div class="weight-row">
+        <div class="weight-name">Defensive potential (DPR)</div>
+        <input class="weight-slider" type="range" min="0" max="10" value="3" step="1" id="w-dpr" oninput="syncWeight('w-dpr','wv-dpr')">
+        <div class="weight-num" id="wv-dpr">3</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Data</div>
+      <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">↻  Refresh Now</button>
+      <div class="auto-row">
+        <div class="auto-label">Auto-refresh every 90s</div>
+        <div class="toggle-wrap">
+          <div class="toggle on" id="auto-toggle" onclick="toggleAuto()">
+            <div class="toggle-knob"></div>
+          </div>
+          <div class="auto-timer" id="auto-timer"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">About</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.7">
+        Scores each upcoming match across all 8 divisions using Statbotics EPA projections + team history.
+        <span style="color:var(--gold)">Gold outline</span> = your favorites.
+      </div>
+    </div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- FIELD MODAL -->
+<div id="field-modal" onclick="closeModal(event)">
+  <div class="modal-box" id="modal-box">
+    <div class="modal-close" onclick="document.getElementById('field-modal').classList.remove('open')">✕</div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-subtitle" id="modal-subtitle"></div>
+    <div class="modal-proj-row">
+      <div class="modal-proj-card">
+        <div class="modal-proj-label">Red Projected</div>
+        <div class="modal-proj-val" style="color:#ff9090" id="modal-red">—</div>
+      </div>
+      <div class="modal-proj-card">
+        <div class="modal-proj-label" style="text-align:center">Combined</div>
+        <div class="modal-proj-val" style="color:var(--text);font-size:22px" id="modal-combined">—</div>
+      </div>
+      <div class="modal-proj-card">
+        <div class="modal-proj-label">Blue Projected</div>
+        <div class="modal-proj-val" style="color:#90b8ff" id="modal-blue">—</div>
+      </div>
+    </div>
+    <div id="modal-teams" style="margin-bottom:8px"></div>
+    <div id="modal-why"></div>
+    <a class="modal-stream-btn" id="modal-stream" href="#" target="_blank">▶ Watch Live Stream</a>
+  </div>
+</div>
+
+<script>
+// ===================== CONSTANTS =====================
+const TBA_KEY = '70Fr5ZffT5yDVKdyhXIl9MDXVDKSReitCk393ywgniojVqsW41uqTrolxInM3XH7';
+const TBA_BASE = 'https://www.thebluealliance.com/api/v3';
+const STATBOTICS_BASE = 'https://api.statbotics.io/v3';
+
+const EVENTS = [
+  { key:'2026arc', name:'Archimedes', short:'ARC', streams: {
+      wed:'https://www.youtube.com/watch?v=265TvNiCV94',
+      thu:'https://www.youtube.com/watch?v=qez41N1qB9s',
+      fri:'https://www.youtube.com/watch?v=XuQbxsAbEXg',
+      sat:'https://www.youtube.com/watch?v=h5CFfVw6H0Y',
+    }
+  },
+  { key:'2026cur', name:'Curie',      short:'CUR', streams: {
+      wed:'https://www.youtube.com/watch?v=0ZeAiI7iPPA',
+      thu:'https://www.youtube.com/watch?v=L3rKKEPwgSc',
+      fri:'https://www.youtube.com/watch?v=VQshqtBSnuk',
+      sat:'https://www.youtube.com/watch?v=CyHQxPhYNHw',
+    }
+  },
+  { key:'2026dal', name:'Daly',       short:'DAL', streams: {
+      wed:'https://www.youtube.com/watch?v=MF80hJ8VsKs',
+      thu:'https://www.youtube.com/watch?v=zNErTM4PsYg',
+      fri:'https://www.youtube.com/watch?v=sK-gayyCsIk',
+      sat:'https://www.youtube.com/watch?v=d00Pyz1Dri0',
+    }
+  },
+  { key:'2026gal', name:'Galileo',    short:'GAL', streams: {
+      wed:'https://www.youtube.com/watch?v=KQXK4qA41EM',
+      thu:'https://www.youtube.com/watch?v=g1iPzNURUgY',
+      fri:'https://www.youtube.com/watch?v=9njBqpH4fhA',
+      sat:'https://www.youtube.com/watch?v=9xPUOKbzvqw',
+    }
+  },
+  { key:'2026hop', name:'Hopper',     short:'HOP', streams: {
+      wed:'https://www.youtube.com/watch?v=rLmphTvtQ7w',
+      thu:'https://www.youtube.com/watch?v=p7gihZzlGIw',
+      fri:'https://www.youtube.com/watch?v=VqeEcZXbR5A',
+      sat:'https://www.youtube.com/watch?v=kG6v3Bt7JUk',
+    }
+  },
+  { key:'2026joh', name:'Johnson',    short:'JOH', streams: {
+      wed:'https://www.youtube.com/watch?v=PqyFF_0QMTE',
+      thu:'https://www.youtube.com/watch?v=KTlZmUXbwfA',
+      fri:'https://www.youtube.com/watch?v=skZTO76_SB4',
+      sat:'https://www.youtube.com/watch?v=_6BhNlBWvw4',
+    }
+  },
+  { key:'2026mil', name:'Milstein',   short:'MIL', streams: {
+      wed:'https://www.youtube.com/watch?v=b0MqgiYCM1k',
+      thu:'https://www.youtube.com/watch?v=6S3yUiqRmOg',
+      fri:'https://www.youtube.com/watch?v=mw71k7Pb33Q',
+      sat:'https://www.youtube.com/watch?v=XY_c9QQBUeE',
+    }
+  },
+  { key:'2026new', name:'Newton',     short:'NEW', streams: {
+      wed:'https://www.youtube.com/watch?v=_BBiWP_tyK8',
+      thu:'https://www.youtube.com/watch?v=7ed1n2aSBlg',
+      fri:'https://www.youtube.com/watch?v=K4m0GSSTM18',
+      sat:'https://www.youtube.com/watch?v=S9kLY224WMw',
+    }
+  },
+];
+
+function getStreamUrl(event) {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  let slot = null;
+
+  if (month === 4 && day === 29) slot = 'wed';
+  else if (month === 4 && day === 30) slot = 'thu';
+  else if (month === 5 && day === 1) slot = 'fri';
+  else if (month === 5 && day === 2) slot = 'sat';
+  else {
+    const weekday = now.getDay();
+    if (weekday === 3) slot = 'wed';
+    else if (weekday === 4) slot = 'thu';
+    else if (weekday === 5) slot = 'fri';
+    else if (weekday === 6) slot = 'sat';
+    else slot = 'fri';
+  }
+
+  if (slot === 'wed') {
+    if (event.streams?.thu) slot = 'thu';
+    else if (event.streams?.fri) slot = 'fri';
+    else if (event.streams?.sat) slot = 'sat';
+  }
+
+  return event.streams?.[slot] || Object.values(event.streams)[0] || '#';
+}
+
+function getEmbedUrl(url) {
+  if (!url) return 'about:blank';
+  try {
+    const u = new URL(url);
+    let videoId = '';
+
+    if (u.hostname.includes('youtube.com')) {
+      videoId = u.searchParams.get('v');
+    } else if (u.hostname.includes('youtu.be')) {
+      videoId = u.pathname.replace(/^\//, '');
+    }
+
+    if (!videoId) return 'about:blank';
+    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1`;
+  } catch (e) {
+    return 'about:blank';
+  }
+}
+
+
+function setCookie(name, value, days = 365) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+
+function getCookie(name) {
+  return document.cookie.split('; ').reduce((r, c) => {
+    const [k, v] = c.split('=', 2);
+    return k === name ? decodeURIComponent(v) : r;
+  }, '');
+}
+
+function saveStateCookies() {
+  setCookie('frc_subs', JSON.stringify([...STATE.subscribedTeams]));
+  setCookie('frc_weights', JSON.stringify({
+    sub: document.getElementById('w-sub').value,
+    combined: document.getElementById('w-combined').value,
+    top: document.getElementById('w-top').value,
+    close: document.getElementById('w-close').value,
+    epa: document.getElementById('w-epa').value,
+    dpr: document.getElementById('w-dpr').value,
+  }));
+  setCookie('frc_stream_mode', STATE.streamMode);
+  setCookie('frc_stream_key', STATE.currentStreamEventKey || '');
+}
+
+function loadStateCookies() {
+  const subs = getCookie('frc_subs');
+  if (subs) {
+    try {
+      const parsed = JSON.parse(subs);
+      if (Array.isArray(parsed)) {
+        STATE.subscribedTeams = new Set(parsed.filter(n => Number.isInteger(n) || !Number.isNaN(+n)).map(Number));
+      }
+    } catch (e) {}
+  }
+
+  const weights = getCookie('frc_weights');
+  if (weights) {
+    try {
+      const parsed = JSON.parse(weights);
+      Object.entries(parsed).forEach(([key, value]) => {
+        const input = document.getElementById(`w-${key}`);
+        const label = document.getElementById(`wv-${key}`);
+        if (input) input.value = value;
+        if (label) label.textContent = value;
+      });
+    } catch (e) {}
+  }
+
+  const streamMode = getCookie('frc_stream_mode');
+  if (streamMode === 'manual' || streamMode === 'auto') STATE.streamMode = streamMode;
+  const streamKey = getCookie('frc_stream_key');
+  if (streamKey) STATE.currentStreamEventKey = streamKey;
+}
+
+function handleStreamSelection() {
+  const select = document.getElementById('stream-source-select');
+  if (!select) return;
+  const value = select.value;
+  if (value === 'auto') {
+    STATE.streamMode = 'auto';
+  } else {
+    STATE.streamMode = 'manual';
+    STATE.currentStreamEventKey = value;
+  }
+  saveStateCookies();
+  renderStreams(STATE.lastScored || []);
+}
+
+function advanceStream() {
+  const scored = STATE.lastScored || [];
+  if (!scored.length) return;
+  const currentIndex = scored.findIndex(f => f.event.key === STATE.currentStreamEventKey);
+  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % scored.length : 0;
+  STATE.currentStreamEventKey = scored[nextIndex].event.key;
+  STATE.streamMode = 'manual';
+  saveStateCookies();
+  renderStreams(scored);
+}
+
+function switchSidebarTab(tab) {
+  const streamTab = document.getElementById('tab-streams');
+  const dashboardTab = document.getElementById('tab-dashboard');
+  const dashboardPanel = document.getElementById('dashboard-panel');
+  const streamSidebar = document.getElementById('stream-sidebar-panel');
+  const streamSection = document.getElementById('stream-section');
+  const mapSection = document.getElementById('map-section');
+  const matchSection = document.getElementById('match-section');
+
+  if (streamTab && dashboardTab && dashboardPanel && streamSidebar && streamSection && mapSection && matchSection) {
+    streamTab.classList.toggle('active', tab === 'streams');
+    dashboardTab.classList.toggle('active', tab === 'dashboard');
+    streamSection.classList.toggle('hidden', tab !== 'streams');
+    mapSection.classList.toggle('hidden', tab === 'streams');
+    matchSection.classList.toggle('hidden', tab === 'streams');
+    streamSidebar.classList.toggle('hidden', tab !== 'streams');
+    dashboardPanel.style.display = tab === 'dashboard' ? 'block' : 'none';
+  }
+}
+
+function updateCurrentStream(scored) {
+  if (!scored.length) {
+    STATE.currentStreamEventKey = null;
+    return;
+  }
+  const activeKeys = new Set(scored.map(f => f.event.key));
+  if (STATE.streamMode === 'manual') {
+    if (activeKeys.has(STATE.currentStreamEventKey)) {
+      return;
+    }
+    STATE.streamMode = 'auto';
+  }
+  if (STATE.streamMode === 'auto') {
+    STATE.currentStreamEventKey = scored[0].event.key;
+    return;
+  }
+  if (!STATE.currentStreamEventKey || !activeKeys.has(STATE.currentStreamEventKey)) {
+    STATE.currentStreamEventKey = scored[0].event.key;
+  }
+}
+
+function getCurrentStreamItem(scored) {
+  if (!scored.length) return null;
+  const selected = scored.find(f => f.event.key === STATE.currentStreamEventKey);
+  return selected || scored[0];
+}
+
+function renderStreams(scored) {
+  const label = document.getElementById('current-stream-label');
+  const info = document.getElementById('current-stream-info');
+  const link = document.getElementById('current-stream-link');
+  const selector = document.getElementById('stream-source-select');
+  const embedContainer = document.getElementById('current-stream-embed-container');
+  if (!label || !info || !link || !selector || !embedContainer) return;
+
+  const autoOption = `<option value="auto"${STATE.streamMode === 'auto' ? ' selected' : ''}>Auto select</option>`;
+  const eventOptions = scored.map(fd => {
+    const selected = STATE.streamMode === 'manual' && STATE.currentStreamEventKey === fd.event.key ? ' selected' : '';
+    return `<option value="${fd.event.key}"${selected}>${fd.event.name} QM${fd.match.matchNum}</option>`;
+  }).join('');
+  selector.innerHTML = autoOption + eventOptions;
+
+  const item = getCurrentStreamItem(scored);
+  if (!item || !item.match) {
+    label.textContent = 'No active stream available yet';
+    info.textContent = 'Awaiting the next exciting match.';
+    link.href = '#';
+    link.textContent = 'No stream available';
+    link.classList.add('disabled');
+    embedContainer.innerHTML = '<div class="embed-placeholder">No stream available.</div>';
+    return;
+  }
+
+  const streamUrl = getStreamUrl(item.event);
+  const embedUrl = getEmbedUrl(streamUrl);
+  const timeText = item.match.predictedTime ? `${formatTimeDelta(item.match.predictedTime)} (${formatMatchTime(item.match.predictedTime)})` : 'TBD';
+
+  label.textContent = `${item.event.name} stream`;
+  info.textContent = `Selected stream for QM ${item.match.matchNum} · ${timeText}`;
+  link.href = streamUrl;
+  link.textContent = `▶ Watch ${item.event.name}`;
+  link.classList.remove('disabled');
+  embedContainer.innerHTML = `
+    <iframe
+      src="${embedUrl}"
+      frameborder="0"
+      allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+      referrerpolicy="strict-origin-when-cross-origin"
+      style="width:100%;height:100%;border:none;"
+    ></iframe>
+  `;
+
+  const statsCard = document.getElementById('stream-stats-card');
+  if (statsCard) {
+    const upcoming = scored.slice(1, 5).map(fd => {
+      const nextTime = fd.match.predictedTime ? formatTimeDelta(fd.match.predictedTime) : 'TBD';
+      return `<div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;">
+        <strong style="font-family:var(--font-display);font-size:13px;color:var(--accent);">${fd.event.name} QM ${fd.match.matchNum}</strong>
+        <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:6px;">${nextTime}</div>
+      </div>`;
+    }).join('');
+    const highlight = `<div style="padding:12px;background:rgba(56,180,255,0.08);border:1px solid rgba(56,180,255,0.25);border-radius:10px;">
+      <div style="font-family:var(--font-display);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Now most exciting</div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--text);">${item.event.name} QM ${item.match.matchNum}</div>
+      <div style="font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:4px;">${timeText}</div>
+    </div>`;
+    statsCard.innerHTML = `${highlight}${upcoming ? `<div style="margin-top:12px;"><div style="font-family:var(--font-display);font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Next up</div>${upcoming}</div>` : ''}`;
+  }
+}
+
+// ===================== STATE =====================
+const STATE = {
+  fieldData: [],       // [{event, matches:[], teamStats:{}}]
+  subscribedTeams: new Set(),
+  autoRefresh: true,
+  autoTimer: null,
+  autoCountdown: 90,
+  countdownInterval: null,
+  currentStreamEventKey: null,
+  streamMode: 'auto',
+  lastScored: [],
+};
+
+// ===================== API HELPERS =====================
+async function tba(path) {
+  const r = await fetch(TBA_BASE + path, { headers: { 'X-TBA-Auth-Key': TBA_KEY } });
+  if (!r.ok) throw new Error(`TBA ${r.status} ${path}`);
+  return r.json();
+}
+
+async function statb(path) {
+  const r = await fetch(STATBOTICS_BASE + path);
+  if (!r.ok) throw new Error(`Statbotics ${r.status} ${path}`);
+  return r.json();
+}
+
+// ===================== FETCH ALL DATA =====================
+async function fetchAll() {
+  document.getElementById('refresh-btn').disabled = true;
+  setStatus('Fetching...');
+  resetAutoCountdown();
+
+  try {
+    // Fetch matches + team stats in parallel for all 8 events
+    const results = await Promise.all(EVENTS.map(async (ev) => {
+      const [matches, teamStats] = await Promise.all([
+        tba(`/event/${ev.key}/matches`).catch(() => []),
+        tba(`/event/${ev.key}/oprs`).catch(() => ({ oprs:{}, dprs:{}, ccwms:{} })),
+      ]);
+
+      // Statbotics team EPA for this event
+      const sbTeams = await statb(`/team_events?event=${ev.key}&limit=100`).catch(() => []);
+      const epaMap = {};
+      if (Array.isArray(sbTeams)) {
+        sbTeams.forEach(t => { epaMap[t.team] = t; });
+      }
+
+      // Get upcoming unplayed qual matches, sorted
+      const upcoming = matches
+        .filter(m => m.comp_level === 'qm' && m.actual_time == null && m.alliances?.red && m.alliances?.blue)
+        .sort((a, b) => (a.predicted_time || a.time || a.match_number) - (b.predicted_time || b.time || b.match_number))
+        .slice(0, 6)
+        .map(m => {
+          const redTeams = m.alliances.red.team_keys.map(t => +t.replace('frc',''));
+          const blueTeams = m.alliances.blue.team_keys.map(t => +t.replace('frc',''));
+
+          // EPA projections from statbotics team data
+          const teamEpa = (num) => epaMap[num]?.epa?.total_points?.mean ?? epaMap[num]?.epa?.mean ?? null;
+          const redEpa = redTeams.map(teamEpa);
+          const blueEpa = blueTeams.map(teamEpa);
+          const hasEpa = redEpa.some(v => v !== null) || blueEpa.some(v => v !== null);
+
+          const sumValid = arr => arr.filter(v => v !== null).reduce((s,v) => s+v, 0);
+          const redProj = hasEpa ? sumValid(redEpa) : null;
+          const blueProj = hasEpa ? sumValid(blueEpa) : null;
+
+          // OPR/DPR from TBA
+          const teamKey = num => `frc${num}`;
+          const opr = num => teamStats.oprs?.[teamKey(num)] ?? null;
+          const dpr = num => teamStats.dprs?.[teamKey(num)] ?? null;
+          const redOpr = redTeams.map(opr);
+          const blueOpr = blueTeams.map(opr);
+          const redDpr = redTeams.map(dpr);
+          const blueDpr = blueTeams.map(dpr);
+
+          return {
+            key: m.key, matchNum: m.match_number,
+            predictedTime: m.predicted_time || m.time,
+            redTeams, blueTeams,
+            redProj, blueProj,
+            redOpr, blueOpr, redDpr, blueDpr,
+            redEpa, blueEpa,
+            epaMap,
+          };
+        });
+
+      return { event: ev, matches: upcoming };
+    }));
+
+    STATE.fieldData = results;
+    setStatus('Live');
+    document.getElementById('last-updated').textContent =
+      'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    recompute();
+  } catch(e) {
+    console.error(e);
+    setStatus('Error');
+    showGlobalError(e.message);
+  }
+
+  document.getElementById('refresh-btn').disabled = false;
+}
+
+// ===================== SCORING =====================
+function getWeights() {
+  return {
+    sub:      +document.getElementById('w-sub').value,
+    combined: +document.getElementById('w-combined').value,
+    top:      +document.getElementById('w-top').value,
+    close:    +document.getElementById('w-close').value,
+    epa:      +document.getElementById('w-epa').value,
+    dpr:      +document.getElementById('w-dpr').value,
+  };
+}
+
+function normalizeValue(value, min, max) {
+  if (min === max) return 0.5;
+  return Math.max(0, Math.min(1, (value - min) / (max - min)));
+}
+
+function buildMatchMetrics(match) {
+  const { redTeams, blueTeams, redProj, blueProj, redOpr, blueOpr, redDpr, blueDpr, redEpa, blueEpa } = match;
+  const combined = redProj !== null && blueProj !== null ? redProj + blueProj : null;
+  const topProj = redProj !== null && blueProj !== null ? Math.max(redProj, blueProj) : null;
+  const diff = redProj !== null && blueProj !== null ? Math.abs(redProj - blueProj) : null;
+  const closeScore = diff !== null ? Math.max(0, 1 - diff / 70) : null;
+  const allEpa = [...redEpa, ...blueEpa].filter(v => v !== null);
+  const maxEpa = allEpa.length ? Math.max(...allEpa) : null;
+  const allDpr = [...redDpr, ...blueDpr].filter(v => v !== null);
+  const maxDpr = allDpr.length ? Math.max(...allDpr) : null;
+  const all = [...redTeams, ...blueTeams];
+  const subCount = all.filter(t => STATE.subscribedTeams.has(t)).length;
+  return { combined, topProj, closeScore, maxEpa, maxDpr, subCount, redTeams, blueTeams, redProj, blueProj, redOpr, blueOpr, redDpr, blueDpr, redEpa, blueEpa, predictedTime: match.predictedTime || match.time || 0 };
+}
+
+function scoreMatch(match, weights, norms) {
+  const metrics = buildMatchMetrics(match);
+  const { redTeams, blueTeams, redProj, blueProj, redOpr, blueOpr, redDpr, blueDpr, redEpa, blueEpa, combined, topProj, closeScore, maxEpa, maxDpr, subCount } = metrics;
+  const all = [...redTeams, ...blueTeams];
+  let score = 0;
+  const reasons = [];
+
+  if (subCount) {
+    score += subCount * weights.sub * 14;
+    reasons.push({ text: `Your favorite team(s) in this match: ${all.filter(t => STATE.subscribedTeams.has(t)).join(', ')}`, color: 'var(--gold)' });
+  }
+
+  if (combined !== null) {
+    const combinedNorm = normalizeValue(combined, norms.minCombined, norms.maxCombined);
+    score += combinedNorm * weights.combined * 13;
+    if (combinedNorm > 0.75) {
+      reasons.push({ text: `High-scoring match projected (${Math.round(combined)} combined)`, color: 'var(--accent)' });
+    }
+
+    const topNorm = normalizeValue(topProj, norms.minTop, norms.maxTop);
+    score += topNorm * weights.top * 10;
+    if (topNorm > 0.7) {
+      reasons.push({ text: `Elite alliance projected ${Math.round(topProj)} pts`, color: 'var(--accent)' });
+    }
+
+    score += closeScore * weights.close * 14;
+    if (closeScore > 0.7) {
+      reasons.push({ text: `Projected nail-biter (gap: ${Math.round(Math.abs(redProj - blueProj))} pts)`, color: 'var(--green)' });
+    }
+  } else if (redOpr.some(v => v !== null) && blueOpr.some(v => v !== null)) {
+    const sumValid = arr => arr.filter(v => v !== null).reduce((s, v) => s + v, 0);
+    const combinedOpr = sumValid(redOpr) + sumValid(blueOpr);
+    score += Math.min(combinedOpr / 220, 1) * weights.combined * 7;
+    const diff = Math.abs(sumValid(redOpr) - sumValid(blueOpr));
+    const close = Math.max(0, 1 - diff / 60);
+    score += close * weights.close * 8;
+    reasons.push({ text: `OPR-based estimate (EPA not yet available)`, color: 'var(--muted)' });
+  }
+
+  const epaNorm = normalizeValue(maxEpa || 0, norms.minEpa, norms.maxEpa);
+  score += epaNorm * weights.epa * 8;
+  if (epaNorm > 0.7) {
+    reasons.push({ text: `Star-level EPA on field (${Math.round(maxEpa)})`, color: 'var(--accent)' });
+  }
+
+  if (maxDpr !== null && maxDpr > 5) {
+    const dprNorm = normalizeValue(maxDpr, norms.minDpr, norms.maxDpr);
+    score += dprNorm * weights.dpr * 6;
+    reasons.push({ text: `Strategic defensive match potential`, color: 'var(--muted)' });
+  }
+
+  const finalScore = Math.round(score + (closeScore || 0) * 4);
+  return {
+    score: finalScore,
+    reasons,
+    metrics: {
+      combinedProj: combined ?? 0,
+      topProj: topProj ?? 0,
+      closeScore: closeScore ?? 0,
+      maxEpa: maxEpa ?? 0,
+      maxDpr: maxDpr ?? 0,
+      time: match.predictedTime || match.time || 0,
+    }
+  };
+}
+
+function recompute() {
+  const weights = getWeights();
+
+  const raw = STATE.fieldData.map(fd => {
+    if (!fd.matches.length) return { ...fd, score: 0, reasons: [], match: null, metrics: null };
+    const match = fd.matches[0];
+    const metrics = buildMatchMetrics(match);
+    return { ...fd, score: 0, reasons: [], match, metrics };
+  }).filter(f => f.match);
+
+  const metricSets = raw.map(fd => fd.metrics);
+  const combinedVals = metricSets.filter(m => m.combined !== null).map(m => m.combined);
+  const topVals = metricSets.filter(m => m.topProj !== null).map(m => m.topProj);
+  const epaVals = metricSets.filter(m => m.maxEpa !== null).map(m => m.maxEpa);
+  const dprVals = metricSets.filter(m => m.maxDpr !== null).map(m => m.maxDpr);
+
+  const norms = {
+    minCombined: combinedVals.length ? Math.min(...combinedVals) : 0,
+    maxCombined: combinedVals.length ? Math.max(...combinedVals) : 1,
+    minTop: topVals.length ? Math.min(...topVals) : 0,
+    maxTop: topVals.length ? Math.max(...topVals) : 1,
+    minEpa: epaVals.length ? Math.min(...epaVals) : 0,
+    maxEpa: epaVals.length ? Math.max(...epaVals) : 1,
+    minDpr: dprVals.length ? Math.min(...dprVals) : 0,
+    maxDpr: dprVals.length ? Math.max(...dprVals) : 1,
+  };
+
+  const scored = raw.map(fd => {
+    const { score, reasons, metrics } = scoreMatch(fd.match, weights, norms);
+    return { ...fd, score, reasons, metrics };
+  });
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.metrics.combinedProj !== a.metrics.combinedProj) return b.metrics.combinedProj - a.metrics.combinedProj;
+    if (b.metrics.topProj !== a.metrics.topProj) return b.metrics.topProj - a.metrics.topProj;
+    if (b.metrics.closeScore !== a.metrics.closeScore) return b.metrics.closeScore - a.metrics.closeScore;
+    if (b.metrics.maxEpa !== a.metrics.maxEpa) return b.metrics.maxEpa - a.metrics.maxEpa;
+    if (a.metrics.time !== b.metrics.time) return a.metrics.time - b.metrics.time;
+    return EVENTS.findIndex(e => e.key === a.event.key) - EVENTS.findIndex(e => e.key === b.event.key);
+  });
+
+  const [top, ...rest] = scored;
+  const runners = rest.slice(0, 3);
+
+  STATE.lastScored = scored;
+  updateCurrentStream(scored);
+  renderMap(scored, top, new Set(runners.map(r => r.event.key)));
+  renderFeatured(top);
+  renderRunners(runners);
+  renderStreams(scored);
+}
+
+function formatTimeDelta(timestamp) {
+  if (!timestamp) return 'TBD';
+  const diffMs = timestamp * 1000 - Date.now();
+  const absMs = Math.abs(diffMs);
+  if (absMs < 60000) return diffMs <= 0 ? 'now' : 'in <1m';
+  const minutes = Math.round(absMs / 60000);
+  if (minutes < 60) return diffMs > 0 ? `in ${minutes}m` : `${minutes}m ago`;
+  const hours = Math.round(absMs / 3600000);
+  if (hours < 24) return diffMs > 0 ? `in ${hours}h` : `${hours}h ago`;
+  const days = Math.round(absMs / 86400000);
+  return diffMs > 0 ? `in ${days}d` : `${days}d ago`;
+}
+
+function formatMatchTime(timestamp) {
+  if (!timestamp) return '';
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'America/Chicago',
+  }).format(new Date(timestamp * 1000)) + ' CT';
+}
+
+// ===================== RENDER MAP =====================
+function teamChip(num, color) {
+  const isSub = STATE.subscribedTeams.has(num);
+  const cls = `chip chip-${color}${isSub?' is-sub':''}`;
+  return `<span class="${cls}">${num}</span>`;
+}
+
+function renderMap(scored, top, runnerKeys) {
+  // We want to display in a 4x2 grid approximating the physical layout
+  // Using the order from EVENTS but arrange them in the grid
+  const html = EVENTS.slice().sort((a, b) => a.name.localeCompare(b.name)).map(ev => {
+    const fd = scored.find(f => f.event.key === ev.key);
+    const isTop = fd && top && fd.event.key === top.event.key;
+    const isRunner = fd && runnerKeys.has(fd.event.key);
+    const match = fd?.match;
+    const pct = fd ? Math.min(fd.score / 130, 1) * 100 : 0;
+
+    let cls = 'field-tile';
+    if (isTop) cls += ' is-top';
+    else if (isRunner) cls += ' is-runner';
+    if (!match) cls += ' no-matches';
+
+    const badge = isTop
+      ? '<div class="field-badge badge-top">WATCH</div>'
+      : isRunner ? '<div class="field-badge badge-runner">ALT</div>' : '';
+
+    const teams = match
+      ? `<div class="tile-alliance">${match.redTeams.map(n=>teamChip(n,'r')).join('')}</div>
+         <div class="tile-alliance">${match.blueTeams.map(n=>teamChip(n,'b')).join('')}</div>`
+      : '<div style="font-family:var(--font-mono);font-size:10px;color:var(--muted)">No upcoming matches</div>';
+
+    const proj = match && match.redProj !== null && match.blueProj !== null
+      ? `<div class="tile-proj"><span class="proj-r">${Math.round(match.redProj)}</span><span class="proj-vs"> vs </span><span class="proj-b">${Math.round(match.blueProj)}</span></div>`
+      : '';
+
+    const timeLabel = match ? formatTimeDelta(match.predictedTime) : '';
+    const localTime = match ? formatMatchTime(match.predictedTime) : '';
+    return `<div class="${cls}" onclick="openModal('${ev.key}')">
+      ${badge}
+      <div class="field-tile-name">${ev.name}</div>
+      ${match ? `<div class="field-tile-match">QM ${match.matchNum} · ${timeLabel}${localTime ? ` (${localTime})` : ''}</div>` : ''}
+      ${teams}
+      ${proj}
+      <div class="excitement-track"><div class="excitement-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('map-grid').innerHTML = html;
+}
+
+// ===================== RENDER FEATURED =====================
+function renderFeatured(fd) {
+  const el = document.getElementById('featured-body');
+  if (!fd || !fd.match) {
+    el.innerHTML = '<div class="error-state">No upcoming matches found across all fields.</div>';
+    return;
+  }
+  const m = fd.match;
+  const timeLabel = m ? formatTimeDelta(m.predictedTime) : '';
+  document.getElementById('feat-score-meta').textContent = `Excitement: ${fd.score}`;
+
+  const teamRow = (num, color) => {
+    const isSub = STATE.subscribedTeams.has(num);
+    const badge = isSub ? '<span class="team-badge tbadge-sub">FAV</span>' : '';
+    const textCol = color === 'red' ? '#ffaaaa' : '#aaccff';
+    return `<div class="alliance-team-row"><span style="color:${textCol}">${num}</span>${badge}</div>`;
+  };
+
+  const proj = m.redProj !== null && m.blueProj !== null;
+  const projBlock = proj
+    ? `<div class="feat-score-wrap">
+        <div class="feat-score-label">Statbotics Projection</div>
+        <div class="feat-scores">
+          <div class="feat-score-r">${Math.round(m.redProj)}</div>
+          <div class="feat-score-sep">—</div>
+          <div class="feat-score-b">${Math.round(m.blueProj)}</div>
+        </div>
+      </div>` : '<div class="feat-score-wrap"><div class="feat-score-label" style="color:var(--muted)">No projection yet</div></div>';
+
+  const whyItems = fd.reasons.slice(0, 4).map(r =>
+    `<div class="why-item"><div class="why-bullet" style="background:${r.color}"></div><span>${r.text}</span></div>`
+  ).join('');
+
+  el.innerHTML = `<div class="featured-body">
+    <div class="feat-top">
+      <div>
+        <div class="feat-division">${fd.event.name}</div>
+        <div class="feat-match">Qual Match ${m.matchNum} · ${fd.event.short} Division · ${timeLabel}</div>
+      </div>
+      ${projBlock}
+    </div>
+    <div class="alliance-grid">
+      <div class="alliance-card red">
+        <div class="alliance-label red">Red Alliance</div>
+        <div class="alliance-teams">${m.redTeams.map(n=>teamRow(n,'red')).join('')}</div>
+      </div>
+      <div class="alliance-card blue">
+        <div class="alliance-label blue">Blue Alliance</div>
+        <div class="alliance-teams">${m.blueTeams.map(n=>teamRow(n,'blue')).join('')}</div>
+      </div>
+    </div>
+    ${fd.reasons.length ? `<div class="why-section">
+      <div class="why-title">Why watch</div>
+      <div class="why-items">${whyItems}</div>
+    </div>` : ''}
+    <a class="stream-btn fullwidth" href="${getStreamUrl(fd.event)}" target="_blank">▶ Watch ${fd.event.name} Live Stream</a>
+  </div>`;
+}
+
+// ===================== RENDER RUNNER-UPS =====================
+function renderRunners(runners) {
+  const el = document.getElementById('runner-up-body');
+  if (!runners.length) {
+    el.innerHTML = '<div class="error-state">No runner-up matches.</div>';
+    return;
+  }
+
+  el.innerHTML = runners.map(fd => {
+    const m = fd.match;
+    const allTeams = [...m.redTeams.map(n=>`<span class="chip chip-r${STATE.subscribedTeams.has(n)?' is-sub':''}">${n}</span>`),
+                     ...m.blueTeams.map(n=>`<span class="chip chip-b${STATE.subscribedTeams.has(n)?' is-sub':''}">${n}</span>`)].join('');
+    const proj = m.redProj !== null && m.blueProj !== null
+      ? `<span class="runner-proj"><span>${Math.round(m.redProj)}</span> — <span>${Math.round(m.blueProj)}</span></span>` : '';
+    const reason = fd.reasons[0]?.text ?? '';
+
+    const timeLabel = formatTimeDelta(m.predictedTime);
+    return `<div class="runner-item" onclick="openModal('${fd.event.key}')">
+      <div class="runner-hd">
+        <div><span class="runner-name">${fd.event.name}</span> <span class="runner-match">QM${m.matchNum} · ${timeLabel}</span></div>
+        ${proj}
+      </div>
+      <div class="runner-teams">${allTeams}</div>
+      ${reason ? `<div class="runner-reason">${reason}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ===================== FIELD MODAL =====================
+function openModal(eventKey) {
+  const fd = STATE.fieldData.find(f => f.event.key === eventKey);
+  const ev = EVENTS.find(e => e.key === eventKey);
+  if (!ev) return;
+
+  document.getElementById('modal-title').textContent = ev.name + ' Division';
+  document.getElementById('modal-subtitle').textContent = eventKey.toUpperCase();
+  document.getElementById('modal-stream').href = getStreamUrl(ev);
+  document.getElementById('modal-stream').textContent = `▶ Watch ${ev.name} Live Stream`;
+
+  const m = fd?.match;
+  if (m && m.redProj !== null && m.blueProj !== null) {
+    document.getElementById('modal-red').textContent = Math.round(m.redProj);
+    document.getElementById('modal-blue').textContent = Math.round(m.blueProj);
+    document.getElementById('modal-combined').textContent = Math.round(m.redProj + m.blueProj);
+  } else {
+    document.getElementById('modal-red').textContent = '—';
+    document.getElementById('modal-blue').textContent = '—';
+    document.getElementById('modal-combined').textContent = '—';
+  }
+
+  if (m) {
+    const localTime = formatMatchTime(m.predictedTime);
+    document.getElementById('modal-teams').innerHTML =
+      `<div style="margin-bottom:6px;font-family:var(--font-mono);font-size:10px;color:var(--muted)">QM ${m.matchNum} — ${localTime || 'TBD'}</div>
+       <div style="display:flex;gap:4px;flex-wrap:wrap">
+         ${m.redTeams.map(n=>`<span class="chip chip-r">${n}</span>`).join('')}
+         ${m.blueTeams.map(n=>`<span class="chip chip-b">${n}</span>`).join('')}
+       </div>`;
+  } else {
+    document.getElementById('modal-teams').innerHTML = '<div style="color:var(--muted);font-size:12px">No upcoming matches scheduled.</div>';
+  }
+
+  const whyItems = fd?.reasons?.length ? fd.reasons.slice(0,4).map(r =>
+    `<div class="why-item"><div class="why-bullet" style="background:${r.color}"></div><span>${r.text}</span></div>`
+  ).join('') : '';
+
+  document.getElementById('modal-why').innerHTML = whyItems
+    ? `<div class="why-section"><div class="why-title">Why watch</div><div class="why-items">${whyItems}</div></div>`
+    : '<div style="color:var(--muted);font-size:12px">No why-watch details available.</div>';
+
+  document.getElementById('field-modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('field-modal')) {
+    document.getElementById('field-modal').classList.remove('open');
+  }
+}
+
+// ===================== TEAM SUBSCRIPTIONS =====================
+function addTeam() {
+  const val = +document.getElementById('team-input').value;
+  if (!val || val < 1 || val > 99999) return;
+  STATE.subscribedTeams.add(val);
+  document.getElementById('team-input').value = '';
+  renderSubChips();
+  saveStateCookies();
+  recompute();
+}
+document.getElementById('team-input').addEventListener('keydown', e => { if (e.key === 'Enter') addTeam(); });
+
+function removeTeam(n) {
+  STATE.subscribedTeams.delete(n);
+  renderSubChips();
+  saveStateCookies();
+  recompute();
+}
+
+function renderSubChips() {
+  const el = document.getElementById('sub-chips');
+  if (!STATE.subscribedTeams.size) {
+    el.innerHTML = '<div class="no-subs">None added yet</div>';
+    return;
+  }
+  el.innerHTML = [...STATE.subscribedTeams].map(n =>
+    `<div class="sub-chip">${n}<span class="sub-chip-x" onclick="removeTeam(${n})">×</span></div>`
+  ).join('');
+}
+
+// ===================== WEIGHT SYNC =====================
+function syncWeight(sliderId, valId) {
+  const value = document.getElementById(sliderId).value;
+  document.getElementById(valId).textContent = value;
+  saveStateCookies();
+  recompute();
+}
+
+// ===================== AUTO REFRESH =====================
+function toggleAuto() {
+  STATE.autoRefresh = !STATE.autoRefresh;
+  const tog = document.getElementById('auto-toggle');
+  if (STATE.autoRefresh) {
+    tog.classList.add('on');
+    resetAutoCountdown();
+  } else {
+    tog.classList.remove('on');
+    clearInterval(STATE.countdownInterval);
+    document.getElementById('auto-timer').textContent = '';
+  }
+}
+
+function resetAutoCountdown() {
+  clearInterval(STATE.countdownInterval);
+  STATE.autoCountdown = 90;
+  if (!STATE.autoRefresh) return;
+  STATE.countdownInterval = setInterval(() => {
+    STATE.autoCountdown--;
+    document.getElementById('auto-timer').textContent = STATE.autoCountdown + 's';
+    if (STATE.autoCountdown <= 0) {
+      fetchAll();
+    }
+  }, 1000);
+}
+
+// ===================== MOBILE TABS =====================
+function switchTab(tab) {
+  document.querySelectorAll('.mnav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  const mapSection = document.getElementById('map-section');
+  const matchSection = document.getElementById('match-section');
+  const streamSection = document.getElementById('stream-section');
+  const sidebar = document.getElementById('sidebar');
+  const streamSidebar = document.getElementById('stream-sidebar-panel');
+
+  const isLive = tab === 'live';
+  const isStream = tab === 'stream';
+  const isWeights = tab === 'weights';
+
+  if (mapSection) mapSection.classList.toggle('mob-active', isLive);
+  if (matchSection) matchSection.classList.toggle('mob-active', isLive);
+
+  if (streamSection) {
+    streamSection.classList.toggle('mob-active', isStream);
+    streamSection.classList.toggle('hidden', !isStream);
+  }
+
+  if (sidebar) sidebar.classList.toggle('mob-active', isWeights);
+  if (streamSidebar) streamSidebar.classList.toggle('hidden', isWeights);
+}
+
+// ===================== UTILS =====================
+function setStatus(s) {
+  document.getElementById('status-text').textContent = s;
+}
+
+function showGlobalError(msg) {
+  document.getElementById('map-grid').innerHTML =
+    `<div class="loading-state" style="grid-column:1/-1">
+      <div class="error-state">API Error: ${msg}<br><span style="color:var(--muted);font-size:10px;margin-top:6px;display:block">Check console. Events may not have started yet.</span></div>
+    </div>`;
+  document.getElementById('featured-body').innerHTML = `<div class="error-state">Could not load match data.</div>`;
+  document.getElementById('runner-up-body').innerHTML = '';
+}
+
+// ===================== INIT =====================
+loadStateCookies();
+renderSubChips();
+fetchAll();
+resetAutoCountdown();
+switchSidebarTab('streams');
+</script>
+</body>
+</html>
