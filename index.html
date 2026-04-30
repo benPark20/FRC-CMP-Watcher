@@ -1196,10 +1196,11 @@ function handleStreamSelection() {
 function advanceStream() {
   const scored = STATE.lastScored || [];
   if (!scored.length) return;
-  const currentIndex = scored.findIndex(f => f.event.key === STATE.currentStreamEventKey);
-  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % scored.length : 0;
-  STATE.currentStreamEventKey = scored[nextIndex].event.key;
-  STATE.currentMatchKey = scored[nextIndex].match.key;
+  const top3 = scored.slice(0, 3);
+  const currentIndex = top3.findIndex(f => f.event.key === STATE.currentStreamEventKey);
+  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % top3.length : 0;
+  STATE.currentStreamEventKey = top3[nextIndex].event.key;
+  STATE.currentMatchKey = top3[nextIndex].match.key;
   STATE.streamMode = 'manual';
   saveStateCookies();
   renderStreams(scored);
@@ -1271,7 +1272,7 @@ function renderStreams(scored) {
   if (!label || !info || !link || !selector || !embedContainer) return;
 
   const autoOption = `<option value="auto"${STATE.streamMode === 'auto' ? ' selected' : ''}>Auto select</option>`;
-  const eventOptions = scored.map(fd => {
+  const eventOptions = scored.slice(0, 3).map(fd => {
     const selected = STATE.streamMode === 'manual' && STATE.currentStreamEventKey === fd.event.key ? ' selected' : '';
     return `<option value="${fd.event.key}"${selected}>${fd.event.name} QM${fd.match.matchNum}</option>`;
   }).join('');
@@ -1297,16 +1298,36 @@ function renderStreams(scored) {
   link.href = streamUrl;
   link.textContent = `▶ Watch ${item.event.name}`;
   link.classList.remove('disabled');
+
+  // Render top 3 streams in scrollable container
+  const topStreams = scored.slice(0, 3);
+  let currentIndex = 0;
+  if (STATE.currentStreamEventKey) {
+    currentIndex = topStreams.findIndex(fd => fd.event.key === STATE.currentStreamEventKey);
+    if (currentIndex === -1) currentIndex = 0;
+  }
+
+  const iframes = topStreams.map((fd, i) => {
+    const sUrl = getStreamUrl(fd.event);
+    const eUrl = getEmbedUrl(sUrl);
+    return `<div style="flex:1; scroll-snap-align:start; position:relative;">
+      <iframe src="${eUrl}" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" style="width:100%;height:100%;border:none;"></iframe>
+    </div>`;
+  }).join('');
+
   embedContainer.innerHTML = `
-    <iframe
-      src="${embedUrl}"
-      frameborder="0"
-      allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen
-      referrerpolicy="strict-origin-when-cross-origin"
-      style="width:100%;height:100%;border:none;"
-    ></iframe>
+    <div style="position:absolute;inset:0;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;">
+      <div style="display:flex;width:${topStreams.length * 100}%;height:100%;">
+        ${iframes}
+      </div>
+    </div>
   `;
+
+  // Scroll to current
+  const scrollContainer = embedContainer.querySelector('div');
+  if (scrollContainer) {
+    scrollContainer.scrollLeft = currentIndex * embedContainer.clientWidth;
+  }
 
   const statsCard = document.getElementById('stream-stats-card');
   if (statsCard) {
