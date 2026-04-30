@@ -955,7 +955,7 @@ body::before {
       <div class="sidebar-title">Data</div>
       <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">↻  Refresh Now</button>
       <div class="auto-row">
-        <div class="auto-label">Auto-refresh every 120s</div>
+        <div class="auto-label">Auto-refresh every 60s</div>
         <div class="toggle-wrap">
           <div class="toggle on" id="auto-toggle" onclick="toggleAuto()">
             <div class="toggle-knob"></div>
@@ -1110,7 +1110,7 @@ function getEmbedUrl(url) {
     }
 
     if (!videoId) return 'about:blank';
-    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=0`;
+    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1`;
   } catch (e) {
     return 'about:blank';
   }
@@ -1332,7 +1332,7 @@ const STATE = {
   subscribedTeams: new Set(),
   autoRefresh: true,
   autoTimer: null,
-  autoCountdown: 120,
+  autoCountdown: 60,
   countdownInterval: null,
   currentStreamEventKey: null,
   currentMatchKey: null,
@@ -1846,7 +1846,7 @@ function toggleAuto() {
 
 function resetAutoCountdown() {
   clearInterval(STATE.countdownInterval);
-  STATE.autoCountdown = 120;
+  STATE.autoCountdown = 60;
   if (!STATE.autoRefresh) return;
   STATE.countdownInterval = setInterval(() => {
     STATE.autoCountdown--;
