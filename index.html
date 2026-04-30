@@ -955,7 +955,7 @@ body::before {
       <div class="sidebar-title">Data</div>
       <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">↻  Refresh Now</button>
       <div class="auto-row">
-        <div class="auto-label">Auto-refresh every 90s</div>
+        <div class="auto-label">Auto-refresh every 120s</div>
         <div class="toggle-wrap">
           <div class="toggle on" id="auto-toggle" onclick="toggleAuto()">
             <div class="toggle-knob"></div>
@@ -1141,6 +1141,7 @@ function saveStateCookies() {
   }));
   setCookie('frc_stream_mode', STATE.streamMode);
   setCookie('frc_stream_key', STATE.currentStreamEventKey || '');
+  setCookie('frc_current_match', STATE.currentMatchKey || '');
 }
 
 function loadStateCookies() {
@@ -1171,6 +1172,8 @@ function loadStateCookies() {
   if (streamMode === 'manual' || streamMode === 'auto') STATE.streamMode = streamMode;
   const streamKey = getCookie('frc_stream_key');
   if (streamKey) STATE.currentStreamEventKey = streamKey;
+  const currentMatch = getCookie('frc_current_match');
+  if (currentMatch) STATE.currentMatchKey = currentMatch;
 }
 
 function handleStreamSelection() {
@@ -1179,9 +1182,12 @@ function handleStreamSelection() {
   const value = select.value;
   if (value === 'auto') {
     STATE.streamMode = 'auto';
+    STATE.currentMatchKey = null; // Let it pick the best
   } else {
     STATE.streamMode = 'manual';
     STATE.currentStreamEventKey = value;
+    const fd = STATE.lastScored.find(f => f.event.key === value);
+    if (fd) STATE.currentMatchKey = fd.match.key;
   }
   saveStateCookies();
   renderStreams(STATE.lastScored || []);
@@ -1193,6 +1199,7 @@ function advanceStream() {
   const currentIndex = scored.findIndex(f => f.event.key === STATE.currentStreamEventKey);
   const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % scored.length : 0;
   STATE.currentStreamEventKey = scored[nextIndex].event.key;
+  STATE.currentMatchKey = scored[nextIndex].match.key;
   STATE.streamMode = 'manual';
   saveStateCookies();
   renderStreams(scored);
@@ -1221,21 +1228,31 @@ function switchSidebarTab(tab) {
 function updateCurrentStream(scored) {
   if (!scored.length) {
     STATE.currentStreamEventKey = null;
+    STATE.currentMatchKey = null;
     return;
   }
   const activeKeys = new Set(scored.map(f => f.event.key));
+  const activeMatchKeys = new Set(scored.map(f => f.match.key));
+
   if (STATE.streamMode === 'manual') {
-    if (activeKeys.has(STATE.currentStreamEventKey)) {
+    if (activeKeys.has(STATE.currentStreamEventKey) && activeMatchKeys.has(STATE.currentMatchKey)) {
       return;
     }
+    // If current match finished or not available, switch to auto
     STATE.streamMode = 'auto';
   }
   if (STATE.streamMode === 'auto') {
-    STATE.currentStreamEventKey = scored[0].event.key;
+    if (!STATE.currentMatchKey || !activeMatchKeys.has(STATE.currentMatchKey)) {
+      // No current match or it finished, switch to top
+      STATE.currentStreamEventKey = scored[0].event.key;
+      STATE.currentMatchKey = scored[0].match.key;
+    }
+    // Else keep current
     return;
   }
   if (!STATE.currentStreamEventKey || !activeKeys.has(STATE.currentStreamEventKey)) {
     STATE.currentStreamEventKey = scored[0].event.key;
+    STATE.currentMatchKey = scored[0].match.key;
   }
 }
 
@@ -1315,9 +1332,10 @@ const STATE = {
   subscribedTeams: new Set(),
   autoRefresh: true,
   autoTimer: null,
-  autoCountdown: 90,
+  autoCountdown: 120,
   countdownInterval: null,
   currentStreamEventKey: null,
+  currentMatchKey: null,
   streamMode: 'auto',
   lastScored: [],
 };
@@ -1828,7 +1846,7 @@ function toggleAuto() {
 
 function resetAutoCountdown() {
   clearInterval(STATE.countdownInterval);
-  STATE.autoCountdown = 90;
+  STATE.autoCountdown = 120;
   if (!STATE.autoRefresh) return;
   STATE.countdownInterval = setInterval(() => {
     STATE.autoCountdown--;
